@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead Qualifier · Sarvam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ee; --panel:#ffffff; --ink:#1d1b18; --muted:#6f6a62; --line:#e6e0d6;
+  --accent:#c4552d; --accent-soft:#f6e3da; --ok:#2f7d4f; --ok-soft:#dcefe3;
+  --warm:#b7791f; --warm-soft:#f8ecd2; --cold:#3d6a9e; --cold-soft:#dde8f4;
+  --dq:#7a7a7a; --dq-soft:#ececec; --bubble-agent:#f2ede5; --bubble-user:#1d1b18;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+header{display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font:600 20px Fraunces,serif;margin:0}
+header .sub{color:var(--muted);font-size:13px}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.pill.mock{background:var(--warm-soft);color:var(--warm)}
+nav{margin-left:auto;display:flex;gap:4px}
+nav button{border:0;background:none;padding:8px 14px;border-radius:8px;font:inherit;color:var(--muted);cursor:pointer}
+nav button.on{background:var(--bg);color:var(--ink);font-weight:600}
+main{max-width:1240px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+@media (max-width:600px){header{padding:12px 16px;flex-wrap:wrap} header .sub{display:none} .pill{white-space:nowrap} #call{height:auto;min-height:0} #log{max-height:60vh}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.btn{border:0;border-radius:10px;padding:11px 18px;font:600 15px Inter;cursor:pointer;background:var(--ink);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:#fff;color:#a33;border:1px solid #e9c9c9}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* call view */
+#call{display:none;flex-direction:column;height:calc(100vh - 140px);min-height:560px}
+.callhead{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:600 17px Fraunces}
+.status{font-size:13px;color:var(--muted)}
+.status b{color:var(--ink)}
+.timer{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}
+#log{flex:1;overflow-y:auto;padding:16px 2px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:80%;padding:10px 14px;border-radius:14px;white-space:pre-wrap}
+.msg.agent{background:var(--bubble-agent);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:var(--bubble-user);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.meta{font-size:11px;color:var(--muted);margin-top:2px}
+.msg.user + .meta{align-self:flex-end}
+.sys{align-self:center;font-size:12px;color:var(--muted);background:var(--bg);padding:4px 12px;border-radius:99px}
+.controls{border-top:1px solid var(--line);padding-top:14px;display:flex;gap:12px;align-items:center}
+.mic{width:64px;height:64px;border-radius:50%;border:0;background:var(--accent);color:#fff;cursor:pointer;position:relative;flex:none;
+  box-shadow:0 0 0 calc(var(--lvl,0)*22px) rgba(196,85,45,.18);transition:box-shadow .08s}
+.mic.rec{background:#b3261e}
+.mic:disabled{background:#cbbfb3;cursor:not-allowed}
+.mic svg{width:26px;height:26px}
+.textin{flex:1;display:flex;gap:8px}
+.textin input{flex:1}
+.toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap}
+.toggle input{width:auto}
+.timings{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--muted)}
+/* lead card */
+.tier{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.badge{font:600 22px Fraunces;padding:6px 16px;border-radius:10px;background:var(--dq-soft);color:var(--dq)}
+.badge.Hot{background:var(--accent-soft);color:var(--accent)}
+.badge.Warm{background:var(--warm-soft);color:var(--warm)}
+.badge.Cold{background:var(--cold-soft);color:var(--cold)}
+.meter{flex:1}
+.bar{height:8px;border-radius:99px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s}
+.small{font-size:12px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.f{border:1px solid var(--line);border-radius:10px;padding:8px 10px;transition:background .6s}
+.f .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.f .v{font-weight:600;min-height:22px}
+.f .v.empty{color:#c9c2b6;font-weight:400}
+.f.flash{background:var(--ok-soft)}
+.reasons{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
+.next{margin-top:14px;padding:12px;border-radius:10px;background:var(--bg);font-size:14px}
+.booking{margin-top:12px;padding:12px;border-radius:10px;background:var(--ok-soft);color:var(--ok);font-weight:600;display:none}
+.summary{margin-top:12px;padding:12px;border-radius:10px;border:1px dashed var(--line);font-size:14px;white-space:pre-wrap;display:none}
+/* leads */
+#leadsView{display:none;max-width:1240px;margin:0 auto;padding:20px 16px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.t{font-weight:600;padding:2px 8px;border-radius:6px;font-size:12px}
+.err{color:#a33;font-size:13px;margin-top:8px}
+.how{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.6}
+.how b{color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Lead Qualifier</h1>
+    <div class="sub">Voice sales agent for home-interiors leads · Saaras · Sarvam-105B · Bulbul</div>
+  </div>
+  <span id="modePill" class="pill">…</span>
+  <nav>
+    <button id="tabCall" class="on" onclick="show('call')">Call</button>
+    <button id="tabLeads" onclick="show('leads')">Leads</button>
+  </nav>
+</header>
+
+<div id="callView">
+<main>
+  <section class="card">
+    <!-- Setup -->
+    <div id="setup">
+      <h2>New web lead · outbound call</h2>
+      <p class="small" style="margin-top:-6px">Simulates calling a customer who just filled the "Get a free quote" form. You play the customer.</p>
+      <div class="row">
+        <div><label>Customer name</label><input id="pName" value="Ananya"></div>
+        <div><label>City (from form)</label><input id="pCity" placeholder="optional"></div>
+      </div>
+      <button class="btn" id="startBtn" onclick="startCall()">Start call</button>
+      <div class="err" id="setupErr"></div>
+      <div class="how">
+        <b>How to talk:</b> tap the mic, speak in any Indian language or Hinglish, it stops automatically when you pause.
+        Hands-free keeps the conversation going like a real call. You can also type.
+      </div>
+    </div>
+    <!-- Call -->
+    <div id="call">
+      <div class="callhead">
+        <div class="avatar" id="avatar">R</div>
+        <div><div><b id="agentName">Riya</b> · <span id="agentBrand">virtual assistant</span></div><div class="status" id="status">Connecting…</div></div>
+        <div class="timer" id="timer">00:00</div>
+        <button class="btn danger" onclick="endCall()">End</button>
+      </div>
+      <div id="log"></div>
+      <div class="controls">
+        <button class="mic" id="mic" onclick="toggleMic()" title="Tap to talk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <div style="flex:1">
+          <div class="textin">
+            <input id="textIn" placeholder="…or type a reply" onkeydown="if(event.key==='Enter')sendText()">
+            <button class="btn ghost" onclick="sendText()">Send</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px">
+            <label class="toggle"><input type="checkbox" id="handsfree" checked> Hands-free</label>
+            <div class="timings" id="timings"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2>Live lead card</h2>
+    <div class="tier">
+      <div class="badge" id="tier">—</div>
+      <div class="meter">
+        <div class="bar"><i id="bar"></i></div>
+        <div class="small" id="pts">Score 0/100 · 0% complete</div>
+      </div>
+    </div>
+    <div class="fields" id="fields"></div>
+    <h2>Why this score</h2>
+    <ul class="reasons" id="reasons"><li>Waiting for the call…</li></ul>
+    <div class="next" id="next">Next best action will appear here.</div>
+    <div class="booking" id="booking"></div>
+    <div class="summary" id="summary"></div>
+  </aside>
+</main>
+</div>
+
+<div id="leadsView">
+  <div class="card">
+    <div style="display:flex;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0">Qualified leads</h2>
+      <a class="btn ghost" style="margin-left:auto;text-decoration:none;font-size:13px" href="/api/leads.csv">Export CSV</a>
+    </div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Lead</th><th>Tier</th><th>Home</th><th>Scope · budget</th><th>Timeline</th><th>Consultation</th><th>CRM note</th></tr></thead><tbody id="leadRows"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+const FIELDS = [
+  ["name","Name"],["city","City"],["locality","Locality"],["property_type","Property"],
+  ["bhk","BHK"],["property_status","Status"],["scope","Scope"],["budget_lakh","Budget"],
+  ["start_timeline","Start"],["decision_maker","Decision"],["consultation_mode","Meet via"],["consultation_slot","Slot"],
+];
+const PRETTY = {
+  possession_received:"Keys received", possession_within_3m:"Possession < 3 mo", under_construction_later:"Under construction",
+  renovation:"Renovation", full_home:"Full home", kitchen_wardrobes:"Kitchen + wardrobes", kitchen_only:"Kitchen only",
+  wardrobes_only:"Wardrobes only", specific_rooms:"Specific rooms", within_1m:"Within 1 month", "1_3m":"1–3 months",
+  "3_6m":"3–6 months", "6m_plus":"6+ months", exploring:"Just exploring", self:"Self", joint_present:"Joint (both on call)",
+  needs_consult:"Needs family", experience_centre:"Experience centre", home_visit:"Home visit", virtual:"Video call",
+  apartment:"Apartment", villa:"Villa", independent_house:"Independent house", other:"Other"
+};
+const fmt = (k,v) => v==null||v==="" ? "—" : k==="budget_lakh" ? `₹${v} lakh` : k==="bhk" ? `${v} BHK` : (PRETTY[v]||v);
+const $ = id => document.getElementById(id);
+
+let S = null, busy = false, startT = 0, timerI = null, lastLead = {};
+
+// ---------- tabs ----------
+function show(which){
+  $("callView").style.display = which==="call" ? "" : "none";
+  $("leadsView").style.display = which==="leads" ? "block" : "none";
+  $("tabCall").classList.toggle("on", which==="call");
+  $("tabLeads").classList.toggle("on", which==="leads");
+  if (which==="leads") loadLeads();
+}
+
+fetch("/api/health").then(r=>r.json()).then(h=>{
+  $("modePill").textContent = h.mock ? "Mock mode · no API key" : `Live · ${h.chat_model}`;
+  $("modePill").classList.toggle("mock", h.mock);
+  $("agentName").textContent = h.agent; $("avatar").textContent = h.agent[0];
+  $("agentBrand").textContent = h.brand + " virtual assistant";
+});
+renderLead({}, {tier:"—",points:0,completeness:0,reasons:["Waiting for the call…"],next_action:""});
+
+// ---------- lead card ----------
+function renderLead(lead, score, updates={}){
+  $("fields").innerHTML = FIELDS.map(([k,l]) => {
+    const v = lead[k]; const empty = v==null||v===""||v===false;
+    return `<div class="f ${k in updates ? "flash":""}" id="f_${k}"><div class="k">${l}</div><div class="v ${empty?"empty":""}">${empty?"—":fmt(k,v)}</div></div>`;
+  }).join("");
+  setTimeout(()=>document.querySelectorAll(".f.flash").forEach(e=>e.classList.remove("flash")), 1200);
+  const t = $("tier"); t.textContent = score.tier; t.className = "badge " + score.tier;
+  $("bar").style.width = (score.points||0) + "%";
+  $("pts").textContent = `Score ${score.points||0}/100 · ${Math.round((score.completeness||0)*100)}% complete`;
+  $("reasons").innerHTML = (score.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join("");
+  $("next").textContent = score.next_action ? "Next: " + score.next_action : "Next best action will appear here.";
+  if (lead.consultation_slot){ $("booking").style.display="block";
+    $("booking").textContent = `✓ Consultation booked · ${lead.consultation_slot} · ${fmt("consultation_mode", lead.consultation_mode)}`; }
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+// ---------- transcript ----------
+function addMsg(role, text, meta){
+  const d = document.createElement("div"); d.className = "msg " + role; d.textContent = text; $("log").appendChild(d);
+  if (meta){ const m = document.createElement("div"); m.className="meta"; m.style.alignSelf = role==="user"?"flex-end":"flex-start"; m.textContent = meta; $("log").appendChild(m); }
+  $("log").scrollTop = 1e9;
+}
+function sys(text){ const d=document.createElement("div"); d.className="sys"; d.textContent=text; $("log").appendChild(d); $("log").scrollTop=1e9; }
+function setStatus(s){ $("status").innerHTML = s; }
+function showTimings(t){ $("timings").innerHTML = Object.entries(t||{}).map(([k,v])=>`<span class="chip">${k.toUpperCase()} ${v}s</span>`).join(""); }
+
+// ---------- call lifecycle ----------
+async function startCall(){
+  $("startBtn").disabled = true; $("setupErr").textContent = "";
+  try{
+    const r = await fetch("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:$("pName").value||null, city:$("pCity").value||null})});
+    if(!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    S = await r.json();
+    $("setup").style.display="none"; $("call").style.display="flex"; $("log").innerHTML="";
+    $("summary").style.display="none"; $("booking").style.display="none";
+    startT = Date.now(); timerI = setInterval(()=>{const s=Math.floor((Date.now()-startT)/1000);
+      $("timer").textContent = String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")},1000);
+    sys("Call connected");
+    handleAgent(S);
+  }catch(e){ $("setupErr").textContent = "Could not start: " + e.message; $("startBtn").disabled=false; }
+}
+
+let turnSeq = 0;
+async function handleAgent(d){
+  lastLead = d.lead;
+  renderLead(d.lead, d.score, d.updates||{});
+  showTimings(d.timings);
+  addMsg("agent", d.reply, d.reply_language || "");
+  if (d.done){ setStatus("<b>Speaking…</b>"); await speak(d.audio_b64, d.reply, d.reply_language); return wrapUp(d); }
+  setStatus("<b>Speaking…</b> (tap mic to interrupt)");
+  const my = ++turnSeq;
+  await speak(d.audio_b64, d.reply, d.reply_language);
+  if (my !== turnSeq) return;             // customer barged in; a newer turn owns the UI
+  setStatus("Your turn — tap the mic or type");
+  if ($("handsfree").checked) startRec();
+}
+
+async function sendTurn(form){
+  busy = true; $("mic").disabled = true; setStatus("<b>Thinking…</b>");
+  form.append("session_id", S.session_id);
+  try{
+    const r = await fetch("/api/turn",{method:"POST",body:form});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail || r.statusText);
+    if (d.no_speech){ sys("Didn't catch that — try again"); setStatus("Your turn"); if($("handsfree").checked) startRec(); return; }
+    addMsg("user", d.user_text, d.user_language || "");
+    busy = false; $("mic").disabled = false;   // allow barge-in while the agent speaks
+    await handleAgent(d);
+  }catch(e){ sys("Error: " + e.message); setStatus("Your turn"); }
+  finally{ busy = false; if (!S.done) $("mic").disabled = false; }
+}
+
+function sendText(){
+  const t = $("textIn").value.trim(); if(!t || busy || !S || S.done) return;
+  $("textIn").value = ""; stopRec(true); stopSpeaking();
+  const f = new FormData(); f.append("text", t); f.append("language", "en-IN"); sendTurn(f);
+}
+
+async function endCall(){
+  stopRec(true); stopSpeaking();
+  if (!S) return;
+  const r = await fetch(`/api/session/${S.session_id}/end`,{method:"POST"});
+  wrapUp(await r.json());
+}
+
+function wrapUp(d){
+  S.done = true; clearInterval(timerI); stopRec(true);
+  renderLead(d.lead, d.score);
+  sys("Call ended" + (d.lead_id ? ` · saved as ${d.lead_id}` : ""));
+  setStatus("Call ended");
+  if (d.summary){ $("summary").style.display="block"; $("summary").textContent = "CRM note\n" + d.summary; }
+  $("mic").disabled = true;
+  const again = document.createElement("button"); again.className="btn"; again.textContent="New call"; again.style.alignSelf="center";
+  again.onclick = ()=>{ $("call").style.display="none"; $("setup").style.display="block"; $("startBtn").disabled=false; $("mic").disabled=false; S=null; };
+  $("log").appendChild(again); $("log").scrollTop=1e9;
+}
+
+// ---------- speech out ----------
+let player = null, speakDone = null;
+function stopSpeaking(){
+  turnSeq++;
+  if(player){player.pause();player=null}
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  if(speakDone){ const r = speakDone; speakDone = null; r(); }
+}
+function speak(b64, text, lang){
+  return new Promise(done=>{
+    const res = ()=>{ if(speakDone===res) speakDone=null; done(); };
+    speakDone = res;
+    if (b64){
+      player = new Audio("data:audio/wav;base64," + b64);
+      player.onended = res; player.onerror = res; player.play().catch(res);
+    } else if (window.speechSynthesis){          // mock mode fallback
+      const u = new SpeechSynthesisUtterance(text); u.lang = lang || "en-IN";
+      u.onend = res; u.onerror = res; speechSynthesis.speak(u);
+      setTimeout(res, 15000);
+    } else res();
+  });
+}
+
+// ---------- speech in: mic -> 16 kHz mono WAV, auto-stop on silence ----------
+let ac, stream, src, proc, chunks = [], recording = false, heard = false, silentSince = 0, recStart = 0;
+const SILENCE_RMS = 0.012, SILENCE_MS = 1300, MAX_MS = 28000;   // Saaras REST accepts <= 30 s
+
+async function toggleMic(){ recording ? stopRec(false) : startRec(); }
+
+async function startRec(){
+  if (recording || busy || !S || S.done) return;
+  stopSpeaking();
+  try{
+    stream = stream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+  }catch(e){ sys("Microphone blocked — type instead"); return; }
+  ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+  if (ac.state === "suspended") await ac.resume();
+  src = ac.createMediaStreamSource(stream);
+  proc = ac.createScriptProcessor(4096, 1, 1);
+  chunks = []; heard = false; silentSince = 0; recStart = performance.now(); recording = true;
+  proc.onaudioprocess = e => {
+    if (!recording) return;
+    const x = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(x));
+    let s = 0; for (let i=0;i<x.length;i++) s += x[i]*x[i];
+    const rms = Math.sqrt(s/x.length), now = performance.now();
+    $("mic").style.setProperty("--lvl", Math.min(1, rms*12));
+    if (rms > SILENCE_RMS){ heard = true; silentSince = 0; }
+    else if (heard){ silentSince = silentSince || now; if (now - silentSince > SILENCE_MS) stopRec(false); }
+    if (now - recStart > MAX_MS) stopRec(false);
+    if (!heard && now - recStart > 12000) stopRec(true);          // nobody spoke
+  };
+  src.connect(proc); proc.connect(ac.destination);
+  $("mic").classList.add("rec"); setStatus("<b>Listening…</b> (pause to send)");
+}
+
+function stopRec(discard){
+  if (!recording) return;
+  recording = false; $("mic").classList.remove("rec"); $("mic").style.setProperty("--lvl", 0);
+  try{ src.disconnect(); proc.disconnect(); }catch(e){}
+  if (discard || !heard){ setStatus("Your turn — tap the mic or type"); return; }
+  const wav = encodeWav(downsample(concat(chunks), ac.sampleRate, 16000), 16000);
+  const f = new FormData(); f.append("audio", new Blob([wav],{type:"audio/wav"}), "speech.wav");
+  sendTurn(f);
+}
+
+function concat(list){ let n=0; list.forEach(a=>n+=a.length); const o=new Float32Array(n); let p=0; list.forEach(a=>{o.set(a,p);p+=a.length}); return o; }
+function downsample(buf, from, to){
+  if (from === to) return buf;
+  const r = from/to, n = Math.floor(buf.length/r), o = new Float32Array(n);
+  for (let i=0;i<n;i++){ const s=Math.floor(i*r), e=Math.min(buf.length, Math.floor((i+1)*r)); let a=0; for(let j=s;j<e;j++) a+=buf[j]; o[i]=a/Math.max(1,e-s); }
+  return o;
+}
+function encodeWav(samples, rate){
+  const b = new ArrayBuffer(44 + samples.length*2), v = new DataView(b);
+  const w = (o,s)=>{for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i))};
+  w(0,"RIFF"); v.setUint32(4, 36+samples.length*2, true); w(8,"WAVE"); w(12,"fmt ");
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,rate,true);
+  v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,"data"); v.setUint32(40,samples.length*2,true);
+  for (let i=0;i<samples.length;i++){ const s=Math.max(-1,Math.min(1,samples[i])); v.setInt16(44+i*2, s<0?s*0x8000:s*0x7FFF, true); }
+  return b;
+}
+
+// ---------- leads table ----------
+async function loadLeads(){
+  const rows = await (await fetch("/api/leads")).json();
+  const col = {Hot:"accent",Warm:"warm",Cold:"cold",Disqualified:"dq",Qualifying:"dq"};
+  $("leadRows").innerHTML = rows.length ? rows.map(r=>{ const L=r.lead, c=col[r.score.tier]||"dq"; return `<tr>
+    <td><b>${esc(L.name||"—")}</b><div class="small">${r.lead_id} · ${new Date(r.ended_at).toLocaleString()}</div></td>
+    <td><span class="t" style="background:var(--${c}-soft);color:var(--${c})">${r.score.tier}</span><div class="small">${r.score.points}/100</div></td>
+    <td>${esc([fmt("bhk",L.bhk), fmt("property_type",L.property_type)].filter(x=>x!=="—").join(" ")||"—")}<div class="small">${esc([L.locality,L.city].filter(Boolean).join(", "))}</div></td>
+    <td>${esc(fmt("scope",L.scope))}<div class="small">${esc(fmt("budget_lakh",L.budget_lakh))}</div></td>
+    <td>${esc(fmt("start_timeline",L.start_timeline))}</td>
+    <td>${esc(L.consultation_slot||"—")}<div class="small">${L.consultation_slot?esc(fmt("consultation_mode",L.consultation_mode)):(L.callback_time?"Callback: "+esc(L.callback_time):"")}</div></td>
+    <td class="small" style="max-width:320px">${esc(r.summary||"")}</td></tr>`}).join("")
+    : `<tr><td colspan="7" class="small">No calls yet.</td></tr>`;
+}
+</script>
+</body>
+</html>
